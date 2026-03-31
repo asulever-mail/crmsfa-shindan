@@ -21,7 +21,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragin
 .next-btn { background: #1D9E75; color: #fff; border: none; border-radius: 8px; padding: 12px 28px; font-size: 15px; font-weight: 500; cursor: pointer; opacity: 0.4; transition: opacity 0.2s; font-family: inherit; }
 .next-btn.active { opacity: 1; }
 .next-btn.active:hover { background: #0F6E56; }
-.result-box { }
 .result-badge { display: inline-block; font-size: 12px; font-weight: 500; padding: 4px 14px; border-radius: 20px; margin-bottom: 1rem; }
 .result-title { font-size: 21px; font-weight: 500; color: #1a1a1a; margin-bottom: 0.75rem; line-height: 1.45; }
 .result-desc { font-size: 15px; color: #555; line-height: 1.75; margin-bottom: 1.5rem; }
@@ -32,11 +31,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragin
 .cta-area { background: #f7f7f5; border: 0.5px solid #e0e0da; border-radius: 12px; padding: 1.25rem 1.5rem; }
 .cta-title { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 0.4rem; }
 .cta-desc { font-size: 13px; color: #777; margin-bottom: 1rem; line-height: 1.65; }
-.email-row { display: flex; gap: 8px; }
-.email-input { flex: 1; padding: 10px 14px; border: 0.5px solid #d0d0cc; border-radius: 8px; font-size: 14px; background: #fff; color: #1a1a1a; font-family: inherit; outline: none; }
-.email-input:focus { border-color: #1D9E75; }
-.dl-btn { background: #1D9E75; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; font-family: inherit; }
+.form-row { display: flex; flex-direction: column; gap: 8px; }
+.form-input { width: 100%; padding: 10px 14px; border: 0.5px solid #d0d0cc; border-radius: 8px; font-size: 14px; background: #fff; color: #1a1a1a; font-family: inherit; outline: none; }
+.form-input:focus { border-color: #1D9E75; }
+.dl-btn { width: 100%; background: #1D9E75; color: #fff; border: none; border-radius: 8px; padding: 12px 20px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 4px; }
 .dl-btn:hover { background: #0F6E56; }
+.dl-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.error-msg { font-size: 12px; color: #A32D2D; display: none; }
 .thankyou { text-align: center; padding: 3rem 0; }
 .thankyou-icon { font-size: 40px; margin-bottom: 1.25rem; }
 .thankyou h2 { font-size: 19px; font-weight: 500; margin-bottom: 0.75rem; color: #1a1a1a; }
@@ -45,8 +46,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragin
 @media (max-width: 480px) {
   .card { padding: 1.5rem 1.25rem; }
   .question { font-size: 17px; }
-  .email-row { flex-direction: column; }
-  .dl-btn { width: 100%; text-align: center; padding: 12px; }
 }
 </style>
 </head>
@@ -62,7 +61,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragin
     <div class="nav"><button class="next-btn" id="next-btn" onclick="nextQ()">次へ →</button></div>
   </div>
 
-  <div id="result-section" class="result-box hidden"></div>
+  <div id="result-section" class="hidden"></div>
 
   <div id="thankyou-section" class="thankyou hidden">
     <div class="thankyou-icon">✉️</div>
@@ -73,34 +72,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragin
 
 <script>
 const questions = [
-  {
-    q: "SFA / CRMを導入して、どのくらい経ちますか？",
-    opts: ["導入して1年未満", "1〜3年程度", "3年以上", "まだ導入していない"]
-  },
-  {
-    q: "SFA / CRMの主な使い方は何ですか？",
-    opts: ["データ入力・記録が中心", "レポート・分析に活用している", "自動化やワークフローを使っている", "正直あまり活用できていない"]
-  },
-  {
-    q: "インサイドセールス（IS）の専任チームはありますか？",
-    opts: ["専任チームがいる", "兼任で対応している", "これから立ち上げ予定", "IS機能はない"]
-  },
-  {
-    q: "リードが入ったとき、誰がどう動くか決まっていますか？",
-    opts: ["明確なルールがある", "なんとなく決まっている", "担当者任せになっている", "特に決まっていない"]
-  },
-  {
-    q: "メルマガ・ナーチャリングコンテンツは定期的に配信できていますか？",
-    opts: ["定期的に配信している", "不定期に配信している", "コンテンツが不足していて滞っている", "ほとんど配信できていない"]
-  },
-  {
-    q: "営業のノウハウは属人化していると感じますか？",
-    opts: ["かなり属人化している", "一部属人化している", "ある程度標準化できている", "しっかり標準化できている"]
-  },
-  {
-    q: "今の体制で、受注率・成約率に課題を感じていますか？",
-    opts: ["強く感じている", "少し感じている", "あまり感じていない", "課題は特にない"]
-  }
+  { q: "SFA / CRMを導入して、どのくらい経ちますか？", opts: ["導入して1年未満", "1〜3年程度", "3年以上", "まだ導入していない"] },
+  { q: "SFA / CRMの主な使い方は何ですか？", opts: ["データ入力・記録が中心", "レポート・分析に活用している", "自動化やワークフローを使っている", "正直あまり活用できていない"] },
+  { q: "インサイドセールス（IS）の専任チームはありますか？", opts: ["専任チームがいる", "兼任で対応している", "これから立ち上げ予定", "IS機能はない"] },
+  { q: "リードが入ったとき、誰がどう動くか決まっていますか？", opts: ["明確なルールがある", "なんとなく決まっている", "担当者任せになっている", "特に決まっていない"] },
+  { q: "メルマガ・ナーチャリングコンテンツは定期的に配信できていますか？", opts: ["定期的に配信している", "不定期に配信している", "コンテンツが不足していて滞っている", "ほとんど配信できていない"] },
+  { q: "営業のノウハウは属人化していると感じますか？", opts: ["かなり属人化している", "一部属人化している", "ある程度標準化できている", "しっかり標準化できている"] },
+  { q: "今の体制で、受注率・成約率に課題を感じていますか？", opts: ["強く感じている", "少し感じている", "あまり感じていない", "課題は特にない"] }
 ];
 
 const results = [
@@ -139,7 +117,7 @@ const results = [
   }
 ];
 
-let current = 0, answers = [];
+let current = 0, answers = [], savedResult = null;
 
 function calcResult() {
   let score = 0;
@@ -185,7 +163,8 @@ function nextQ() {
 
 function showResult() {
   document.getElementById('quiz-section').classList.add('hidden');
-  const r = calcResult();
+  savedResult = calcResult();
+  const r = savedResult;
   const rs = document.getElementById('result-section');
   rs.classList.remove('hidden');
   rs.innerHTML = `
@@ -198,19 +177,71 @@ function showResult() {
     <div class="cta-area">
       <div class="cta-title">詳しい解決策をAI商談コンテンツでご確認いただけます</div>
       <div class="cta-desc">貴社の状況に合わせた営業体制の改善事例・ノウハウを5分でまとめた資料をお送りします。</div>
-      <div class="email-row">
-        <input class="email-input" type="email" id="email-in" placeholder="メールアドレスを入力">
-        <button class="dl-btn" onclick="submitEmail()">資料を受け取る</button>
+      <div class="form-row">
+        <input class="form-input" type="text" id="input-company" placeholder="会社名">
+        <input class="form-input" type="text" id="input-name" placeholder="お名前">
+        <input class="form-input" type="tel" id="input-phone" placeholder="電話番号">
+        <input class="form-input" type="email" id="input-email" placeholder="メールアドレス">
+        <div class="error-msg" id="error-msg">すべての項目を正しく入力してください</div>
+        <button class="dl-btn" id="submit-btn" onclick="submitToHubSpot()">資料を受け取る</button>
       </div>
     </div>
   `;
 }
 
-function submitEmail() {
-  const v = document.getElementById('email-in').value;
-  if (!v || !v.includes('@')) { alert('メールアドレスを正しく入力してください'); return; }
-  document.getElementById('result-section').classList.add('hidden');
-  document.getElementById('thankyou-section').classList.remove('hidden');
+function submitToHubSpot() {
+  const company = document.getElementById('input-company').value.trim();
+  const name = document.getElementById('input-name').value.trim();
+  const phone = document.getElementById('input-phone').value.trim();
+  const email = document.getElementById('input-email').value.trim();
+  const errorMsg = document.getElementById('error-msg');
+  const btn = document.getElementById('submit-btn');
+
+  if (!company || !name || !phone || !email || !email.includes('@')) {
+    errorMsg.style.display = 'block';
+    return;
+  }
+  errorMsg.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  const portalId = '24238570';
+  const formGuid = '6964aea4-08de-4d21-965d-cb0224c40020';
+  const url = `https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formGuid}`;
+
+  const payload = {
+    fields: [
+      { name: 'company', value: company },
+      { name: 'firstname', value: name },
+      { name: 'phone', value: phone },
+      { name: 'email', value: email },
+      { name: 'message', value: '診断結果：' + (savedResult ? savedResult.badge : '') }
+    ],
+    context: { pageUri: window.location.href, pageName: 'SFA/CRM活用診断' }
+  };
+
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(res => {
+    if (res.ok) {
+      document.getElementById('result-section').classList.add('hidden');
+      document.getElementById('thankyou-section').classList.remove('hidden');
+    } else {
+      btn.disabled = false;
+      btn.textContent = '資料を受け取る';
+      errorMsg.textContent = '送信に失敗しました。もう一度お試しください。';
+      errorMsg.style.display = 'block';
+    }
+  })
+  .catch(() => {
+    btn.disabled = false;
+    btn.textContent = '資料を受け取る';
+    errorMsg.textContent = '通信エラーが発生しました。もう一度お試しください。';
+    errorMsg.style.display = 'block';
+  });
 }
 
 render();
